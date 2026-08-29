@@ -1,0 +1,280 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Feedback System</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 550px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .description {
+            text-align: center;
+            color: #777;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 7px;
+            font-weight: bold;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            height: 100px;
+            resize: none;
+        }
+
+        .stars {
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .stars span {
+            font-size: 35px;
+            color: #ccc;
+            cursor: pointer;
+        }
+
+        .stars span.active {
+            color: gold;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 7px;
+            background: #007bff;
+            color: white;
+            font-size: 17px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #result {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .feedback {
+            margin-top: 25px;
+            padding: 15px;
+            background: #f2f2f2;
+            border-radius: 8px;
+        }
+
+        .feedback h3 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Online Feedback System</h1>
+    <p class="description">We value your opinion!</p>
+
+    <form id="feedbackForm">
+
+        <label>Name</label>
+        <input type="text" id="name" placeholder="Enter your name" required>
+
+        <label>Email</label>
+        <input type="email" id="email" placeholder="Enter your email" required>
+
+        <label>Feedback Type</label>
+        <select id="type" required>
+            <option value="">Select feedback type</option>
+            <option>Website</option>
+            <option>Service</option>
+            <option>Product</option>
+            <option>Support</option>
+            <option>Other</option>
+        </select>
+
+        <label>Rating</label>
+
+        <div class="stars">
+            <span onclick="rating(1)">★</span>
+            <span onclick="rating(2)">★</span>
+            <span onclick="rating(3)">★</span>
+            <span onclick="rating(4)">★</span>
+            <span onclick="rating(5)">★</span>
+        </div>
+
+        <label>Your Feedback</label>
+        <textarea id="feedback"
+                  placeholder="Write your feedback..."
+                  required></textarea>
+
+        <button type="submit">Submit Feedback</button>
+
+        <p id="result"></p>
+
+    </form>
+
+    <div id="feedbackList"></div>
+
+</div>
+
+<script>
+
+    let selectedRating = 0;
+
+    function rating(value) {
+
+        selectedRating = value;
+
+        let stars = document.querySelectorAll(".stars span");
+
+        stars.forEach((star, index) => {
+
+            if (index < value) {
+                star.classList.add("active");
+            } else {
+                star.classList.remove("active");
+            }
+
+        });
+    }
+
+
+    document.getElementById("feedbackForm").addEventListener("submit", function(e) {
+
+        e.preventDefault();
+
+        let name = document.getElementById("name").value;
+        let email = document.getElementById("email").value;
+        let type = document.getElementById("type").value;
+        let feedback = document.getElementById("feedback").value;
+
+        if (selectedRating === 0) {
+
+            document.getElementById("result").innerHTML =
+                "Please select a rating.";
+
+            document.getElementById("result").style.color = "red";
+
+            return;
+        }
+
+
+        let data = {
+            name: name,
+            email: email,
+            type: type,
+            rating: selectedRating,
+            feedback: feedback
+        };
+
+
+        let oldData =
+            JSON.parse(localStorage.getItem("feedbackData")) || [];
+
+        oldData.push(data);
+
+        localStorage.setItem(
+            "feedbackData",
+            JSON.stringify(oldData)
+        );
+
+
+        document.getElementById("result").innerHTML =
+            "✓ Feedback submitted successfully!";
+
+        document.getElementById("result").style.color = "green";
+
+
+        document.getElementById("feedbackForm").reset();
+
+        selectedRating = 0;
+
+        document.querySelectorAll(".stars span")
+            .forEach(star => star.classList.remove("active"));
+
+        showFeedback();
+
+    });
+
+
+    function showFeedback() {
+
+        let data =
+            JSON.parse(localStorage.getItem("feedbackData")) || [];
+
+        let list = document.getElementById("feedbackList");
+
+        list.innerHTML = "<h2>Recent Feedback</h2>";
+
+
+        data.forEach(item => {
+
+            let stars = "★".repeat(item.rating) +
+                        "☆".repeat(5 - item.rating);
+
+            list.innerHTML += `
+                <div class="feedback">
+                    <h3>${item.name}</h3>
+                    <p><b>Email:</b> ${item.email}</p>
+                    <p><b>Type:</b> ${item.type}</p>
+                    <p style="color:gold;font-size:20px;">
+                        ${stars}
+                    </p>
+                    <p><b>Feedback:</b> ${item.feedback}</p>
+                </div>
+            `;
+
+        });
+
+    }
+
+
+    showFeedback();
+
+</script>
+
+</body>
+</html>
+```
